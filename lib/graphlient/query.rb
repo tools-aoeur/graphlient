@@ -57,13 +57,20 @@ module Graphlient
     end
 
     def append_node(node, args, arg_processor: nil, &block)
+      hash_arguments = hash_arg(args)
+
       node = "...#{resolve_fragment_constant(node)}".to_sym if node.to_s.start_with?('___')
 
       # add field
-      @query_str << "\n#{indent}#{node}"
+      # when using operation name
+      if ROOT_NODES.include?(node) && hash_arguments && hash_arguments.has_key?(:operation_name)
+        @query_str << "\n#{indent}#{node} #{hash_arguments.delete(:operation_name)} "
+      else
+        @query_str << "\n#{indent}#{node}"
+      end
+
       # add filter
-      hash_arguments = hash_arg(args)
-      @query_str << "(#{args_str(hash_arguments, arg_processor: arg_processor)})" if hash_arguments
+      @query_str << "(#{args_str(hash_arguments, arg_processor: arg_processor)})" if hash_arguments&.any?
 
       if block_given?
         @indents += 1

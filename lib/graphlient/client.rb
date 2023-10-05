@@ -21,8 +21,7 @@ module Graphlient
       query_params = {}
       query_params[:context] = @options if @options
       query_params[:variables] = variables if variables
-      query = client.parse(query) if query.is_a?(String)
-      rc = client.query(query, **query_params)
+      rc = client.query(parse_query(query), **query_params)
       raise Graphlient::Errors::GraphQLError, rc if rc.errors.any?
       # see https://github.com/github/graphql-client/pull/132
       # see https://github.com/exAspArk/graphql-errors/issues/2
@@ -68,6 +67,25 @@ module Graphlient
 
     def errors_in_result?(response)
       response.data && response.data.errors && response.data.errors.all.any?
+    end
+
+    def parse_query(query)
+      return query unless query.is_a?(String)
+
+      query = client.parse(query)
+      return query if query.is_a?(GraphQL::Client::OperationDefinition)
+      
+      query = query.const_get(query.constants.first)
+      patch_operation_name(query)
+      query
+    end
+
+    def patch_operation_name(query)
+      query.instance_eval do
+        def name
+          super.gsub(/#<Module:(0x[0-9a-f]+)>/, 'Graphlient')
+        end
+      end
     end
   end
 end

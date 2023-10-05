@@ -24,4 +24,5 @@ group :test do
   gem 'sinatra'
   gem 'vcr'
   gem 'webmock'
+  gem 'rspec-instrumentation-matcher'
 end
