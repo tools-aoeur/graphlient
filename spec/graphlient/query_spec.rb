@@ -3,6 +3,18 @@ require 'spec_helper'
 describe Graphlient::Query do
   describe '#initialize' do
     context 'query' do
+      it 'returns the operatio_name in the query' do
+        query = Graphlient::Query.new do
+          query(operation_name: "MyOperationName") do
+            invoice do
+              line_items
+            end
+          end
+        end
+
+        expect(query.to_s).to eq "query MyOperationName {\n  invoice{\n    line_items\n    }\n  }"
+      end
+
       it 'returns expected query with block' do
         query = Graphlient::Query.new do
           query do
@@ -79,6 +91,19 @@ describe Graphlient::Query do
     end
 
     context 'mutation' do
+
+      it 'returns the operatio_name in the query' do
+        mutation = Graphlient::Query.new do
+          mutation(operation_name: "MyUpdateMutationOperationName") do
+            invoice(type: 'test', fee_in_cents: 20_000, total_cents: 50_000, line_items: %w[li1 li2]) do
+              id
+            end
+          end
+        end
+
+        expect(mutation.to_s).to eq "mutation MyUpdateMutationOperationName {\n  invoice(type: \"test\", fee_in_cents: 20000, total_cents: 50000, line_items: [\"li1\", \"li2\"]){\n    id\n    }\n  }"
+      end
+
       it 'returns proper mutation with arguments' do
         mutation = Graphlient::Query.new do
           mutation do

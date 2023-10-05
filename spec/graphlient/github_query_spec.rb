@@ -18,6 +18,18 @@ describe Graphlient::Client do
     expect(rc.data.viewer.name).to eq 'Daniel Doubrovkine (dB.) @dblockdotorg'
   end
 
+  it 'correctly sets the operation name & type', vcr: { cassette_name: 'github/viewer' } do
+    expect {
+      client.query <<-GRAPHQL
+        query MyViewerAsOperationName {
+          viewer {
+            name
+          }
+        }
+      GRAPHQL
+    }.to instrument("query.graphql").with(hash_including(:operation_name=>"Graphlient__MyViewerAsOperationName", :operation_type=>"query"))
+  end
+
   it 'queries with a parameter', vcr: { cassette_name: 'github/user' } do
     query = <<-GRAPHQL
       query($login: String!) {
