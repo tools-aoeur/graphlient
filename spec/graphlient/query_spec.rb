@@ -92,7 +92,7 @@ describe Graphlient::Query do
 
     context 'mutation' do
 
-      it 'returns the operatio_name in the query' do
+      it 'returns the operation_name in the query' do
         mutation = Graphlient::Query.new do
           mutation(operation_name: "MyUpdateMutationOperationName") do
             invoice(type: 'test', fee_in_cents: 20_000, total_cents: 50_000, line_items: %w[li1 li2]) do
