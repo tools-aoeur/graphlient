@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Graphlient::Query do
   describe '#initialize' do
     context 'query' do
-      it 'returns the operatio_name in the query' do
+      it 'returns the operation_name in the query' do
         query = Graphlient::Query.new do
           query(operation_name: "MyOperationName") do
             invoice do
