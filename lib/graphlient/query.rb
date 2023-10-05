@@ -64,7 +64,6 @@ module Graphlient
       # add field
       # when using operation name
       if ROOT_NODES.include?(node) && hash_arguments && hash_arguments.has_key?(:operation_name)
-        puts "side rooto"
         @query_str << "\n#{indent}#{node} #{hash_arguments.delete(:operation_name)} "
       else
         @query_str << "\n#{indent}#{node}"
