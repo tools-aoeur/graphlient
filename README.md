@@ -3,13 +3,14 @@
 [![Gem Version](https://badge.fury.io/rb/graphlient.svg)](https://badge.fury.io/rb/graphlient)
 [![Build Status](https://github.com/ashkan18/graphlient/actions/workflows/ci.yml/badge.svg)](https://github.com/ashkan18/graphlient/actions/workflows/ci.yml)
 
-A friendlier Ruby client for consuming GraphQL-based APIs. Built on top of your usual [graphql-client](https://github.com/github/graphql-client), but with better defaults, more consistent error handling, and using the [faraday](https://github.com/lostisland/faraday) HTTP client.
+A friendlier Ruby client for consuming GraphQL-based APIs. Built on top of your usual [graphql-client](https://github.com/github-community-projects/graphql-client), but with better defaults, more consistent error handling, and using the [faraday](https://github.com/lostisland/faraday) HTTP client.
 
 # Table of Contents
 
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Schema storing and loading on disk](#schema-storing-and-loading-on-disk)
+  - [Schema Storing and Loading on Disk](#schema-storing-and-loading-on-disk)
+  - [Preloading Schema Once](#preloading-schema-once)
   - [Error Handling](#error-handling)
   - [Executing Parameterized Queries and Mutations](#executing-parameterized-queries-and-mutations)
   - [Parse and Execute Queries Separately](#parse-and-execute-queries-separately)
@@ -18,7 +19,7 @@ A friendlier Ruby client for consuming GraphQL-based APIs. Built on top of your 
   - [Create API Client Classes with Graphlient::Extension::Query](#create-api-client-classes-with-graphlientextensionquery)
   - [Swapping the HTTP Stack](#swapping-the-http-stack)
   - [Testing with Graphlient and RSpec](#testing-with-graphlient-and-rspec)
--  [License](#license)
+- [License](#license)
 
 ## Installation
 
@@ -45,7 +46,7 @@ client = Graphlient::Client.new('https://test-graphql.biz/graphql',
 ```
 
 | http_options  | default | type    |
-|---------------|---------|---------|
+| ------------- | ------- | ------- |
 | read_timeout  | nil     | seconds |
 | write_timeout | nil     | seconds |
 
@@ -140,6 +141,30 @@ client = Client.new(url, schema_path: 'config/your_graphql_schema.json')
 client.schema.dump! # you only need to call this when graphql schema changes
 ```
 
+### Preloading Schema Once
+
+Even if caching the schema on disk, instantiating `Graphlient::Client` often can be both time and memory intensive due to loading the schema for each instance. This is especially true if the schema is a large file. To get around these performance issues, instantiate your schema once and pass it in as a configuration option.
+
+One time in an initializer
+
+```ruby
+schema = Graphlient::Schema.new(
+  'https://graphql.foo.com/graphql', 'lib/graphql_schema_foo.json'
+)
+```
+
+Pass in each time you initialize a client
+
+```
+client = Graphlient::Client.new(
+  'https://graphql.foo.com/graphql',
+  schema: schema,
+  headers: {
+    'Authorization' => 'Bearer 123',
+  }
+)
+```
+
 ### Error Handling
 
 Unlike graphql-client, Graphlient will always raise an exception unless the query has succeeded.
@@ -191,7 +216,9 @@ client.query(ids: [42]) do
   end
 end
 ```
+
 Graphlient supports following Scalar types for parameterized queries by default:
+
 - `:id` maps to `ID`
 - `:boolean` maps to `Boolean`
 - `:float` maps to `Float`
@@ -218,7 +245,6 @@ end
 ### Parse and Execute Queries Separately
 
 You can `parse` and `execute` queries separately with optional variables. This is highly recommended as parsing a query and validating a query on every request adds performance overhead. Parsing queries early allows validation errors to be discovered before request time and avoids many potential security issues.
-
 
 ```ruby
 # parse a query, returns a GraphQL::Client::OperationDefinition
@@ -254,7 +280,7 @@ client.execute query, ids: [42]
 
 ### Dynamic vs. Static Queries
 
-Graphlient uses [graphql-client](https://github.com/github/graphql-client), which [recommends](https://github.com/github/graphql-client/blob/master/guides/dynamic-query-error.md) building queries as static module members along with dynamic variables during execution. This can be accomplished with graphlient the same way.
+Graphlient uses [graphql-client](https://github.com/github-community-projects/graphql-client), which [recommends](https://github.com/github-community-projects/graphql-client/blob/master/guides/dynamic-query-error.md) building queries as static module members along with dynamic variables during execution. This can be accomplished with graphlient the same way.
 
 Create a new instance of `Graphlient::Client` with a URL and optional headers.
 
@@ -296,7 +322,7 @@ Execute the query.
 response = SWAPI::Client.execute(SWAPI::InvoiceQuery, id: 42)
 ```
 
-Note that in the example above the client is created with `allow_dynamic_queries: false` (only allow static queries), while graphlient defaults to `allow_dynamic_queries: true` (allow dynamic queries). This option is marked deprecated, but we're proposing to remove it and default it to `true` in [graphql-client#128](https://github.com/github/graphql-client/issues/128).
+Note that in the example above the client is created with `allow_dynamic_queries: false` (only allow static queries), while graphlient defaults to `allow_dynamic_queries: true` (allow dynamic queries). This option is marked deprecated, but we're proposing to remove it and default it to `true` in [graphql-client#128](https://github.com/github-community-projects/graphql-client/issues/128).
 
 ### Generate Queries with Graphlient::Query
 
@@ -317,7 +343,7 @@ query.to_s
 
 ### Use of Fragments
 
-[Fragments](https://github.com/github/graphql-client#defining-queries) should be referred by constant:
+[Fragments](https://github.com/github-community-projects/graphql-client#defining-queries) should be referred by constant:
 
 ```ruby
 module Fragments
@@ -348,7 +374,7 @@ end
 ```
 
 The wrapped response only allows access to fields that have been explicitly asked for.
-In this example, while `id` has been referenced directly in the main query, `feeInCents` has been spread via fragment and trying to access it in the original wrapped response will throw [`GraphQL::Client::ImplicitlyFetchedFieldError`](https://github.com/github/graphql-client/blob/master/guides/implicitly-fetched-field-error.md) (to prevent data leaks between components).
+In this example, while `id` has been referenced directly in the main query, `feeInCents` has been spread via fragment and trying to access it in the original wrapped response will throw [`GraphQL::Client::ImplicitlyFetchedFieldError`](https://github.com/github-community-projects/graphql-client/blob/master/guides/implicitly-fetched-field-error.md) (to prevent data leaks between components).
 
 ```ruby
 response = client.execute(invoice_query)
